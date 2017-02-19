@@ -1,0 +1,88 @@
+<!DOCTYPE html><html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link rel="shortcut icon" href="http://www.ubuntu.com/sites/all/themes/ubuntu10/favicon.ico" type="image/x-icon"/>
+    <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+<title>HTML5 Chat</title>
+<!-- comienza JS detecta Conectividad HTML5 Web Socket  -->
+<script>
+var addEvent = (function () {
+  if (document.addEventListener) {
+    return function (el, type, fn) {
+      if (el && el.nodeName || el === window) {
+        el.addEventListener(type, fn, false);
+      } else if (el && el.length) {
+        for (var i = 0; i < el.length; i++) {
+          addEvent(el[i], type, fn);
+        } } };
+  } else {
+    return function (el, type, fn) {
+      if (el && el.nodeName || el === window) {
+        el.attachEvent('on' + type, function () { return fn.call(el, window.event); });
+      } else if (el && el.length) {
+        for (var i = 0; i < el.length; i++) {
+          addEvent(el[i], type, fn);
+        } } }; } })();
+</script>
+<!-- termina JS detecta Conectividad HTML5 Web Socket  -->
+</head>
+<body style="cursor: crosshair; cursor: cross; background-color:#0000;"><section id="wrapper"><header><dd><h2 style="font: bold 12px Ubuntu; text-shadow:3 3 3px black;">HTML5 Chat</h1></header>
+
+<!-- comienza el codigo del chat  -->
+<article>
+<style>
+#chat { width: 97%; background-color:white; }
+.Los_otros_dicen { font-weight: bold; color: black; }
+.Los_otros_dicen:before { content: 'Los_otros_dicen '; color: black; font-size: 12px; font: bold 12px Ubuntu; }
+.Tu_dices { font-style: italic; font: 8px Ubuntu; color: grey; }
+.Tu_dices:before { content: 'Tu_dices '; color: grey; font-style: italic; font: 8px Ubuntu; padding: 0; }
+#log { overflow: auto; max-height: 300px; list-style: none; padding: 0; }
+#log li { border-top: 1px solid grey; padding: 10px 0; }
+</style>
+<form><input type="text" id="chat" placeholder=" Escribe y presiona Enter" style="color:blue; text-shadow:3 3 3px orange; background-color:#0000; padding:1px 10px; font: bold 12px Ubuntu; -webkit-border-radius:20px; border:2px solid orange; -webkit-box-shadow:0 2px 5px rgba(248,112,54,0.7); width:480px;" title="No Spamm, LEA las REGLAS." autocomplete="off" pattern="^[A-Za-z0-9 _]{2,70}[A-Za-z0-9 _]{2,70}$" required/>
+<p><i><small>Reglas: No Spamm, >4 y <140 caracteres, respete a los demas,<br> se permite letras en mayuscula y minuscula, tambien espacios y numeros.</small></i></p>
+</form><p id="status" style="font: bold 12px Ubuntu; text-shadow:3 3 3px black;">DESCONECTADO del Chat HTML5</p>
+<ul id="log"></ul>
+</article>
+<!-- termina el codigo del chat  -->
+
+<!-- SCRIPT RE LOCO QUE LO HACE ANDAR  :)  -->
+<script>
+function openConnection() {
+  if (conn.readyState === undefined || conn.readyState > 1) {
+    conn = new WebSocket('ws://localhost:9999');    
+    conn.onopen = function () {
+      state.className = 'success';
+      state.innerHTML = 'Estas CONECTADO al Chat HTML5, Echo Local Activado...'; };
+    conn.onmessage = function (event) { var message = JSON.parse(event.data); 
+    if (typeof message == 'string') {
+        log.innerHTML = '<li class="Los_otros_dicen">' + message.replace(/[<>&]/g, function (m) { return entities[m]; }) + '</li>' + log.innerHTML;
+      } else { connected.innerHTML = message; } };
+    conn.onclose = function (event) {
+      state.className = 'fail';
+      state.innerHTML = 'DESCONECTADO del Chat HTML5';
+    }; } }
+
+var connected = document.getElementById('connected'),
+    log = document.getElementById('log'),
+    chat = document.getElementById('chat'),
+    form = chat.form,
+    conn = {},
+    state = document.getElementById('status'),
+    entities = { '<' : '<',  '>' : '>',  '&' : '&' };
+
+if (window.WebSocket === undefined) {
+  state.innerHTML = 'Su Navegador NO soporta HTML5 Sockets, instale Chromium.';
+  state.className = 'fail'; } else { state.onclick = function () { if (conn.readyState !== 1) {
+      conn.close(); setTimeout(function () { openConnection(); }, 250); } };
+  addEvent(form, 'submit', function (event) { event.preventDefault();
+    if (conn.readyState === 1) { conn.send(JSON.stringify(chat.value));
+      log.innerHTML = '<li class="Tu_dices">' + chat.value.replace(/[<>&]/g, function (m) { return entities[m]; }) + '</li>' + log.innerHTML;
+      chat.value = '';
+    } });
+  openConnection();  
+}
+</script>
+</body>
+</html>
